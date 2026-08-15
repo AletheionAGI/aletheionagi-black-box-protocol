@@ -1,0 +1,16 @@
+.env
+private-provisioning*.json
+.venv*/
+.guardrails/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+results/*
+!results/.gitkeep
+!results/strix/
+results/strix/*
+!results/strix/.gitkeep

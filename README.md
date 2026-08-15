@@ -17,6 +17,9 @@ evidence is never treated as a pass.
 ## What is included
 
 - [`PROTOCOL.md`](PROTOCOL.md): normative test method and interpretation rules.
+- [`Black-Box-Protocol/`](Black-Box-Protocol/README.md): multi-target, vendor-neutral
+  benchmark with a pre-registered case schema, frozen SHA-256 corpus, capability-aware
+  scoring and adapters for the first open/reproducible comparison cohort.
 - `aletheion-black-box`: dependency-free Python 3.11+ runner.
 - [`config.example.json`](config.example.json): safe, non-secret configuration template.
 - [`schemas/`](schemas): machine-readable configuration and result schemas.
@@ -40,20 +43,40 @@ $env:ALETHEION_API_KEY_B = "<organization-b-key>"
 
 ## Quick start
 
+The simplest path runs the vendor-neutral suite and automatically provisions its frozen
+synthetic corpus in authorized delegated AletheionAGI namespaces:
+
+```bash
+cd Black-Box-Protocol
+cp .env.example .env
+# Fill the required values in .env, then review the no-traffic plan:
+python scripts/setup_and_run.py
+# Provision the synthetic corpus and run the suite:
+python scripts/setup_and_run.py --execute
+```
+
+The dry-run must report `traffic_sent: false`. `--execute` performs real synthetic memory
+writes, waits for indexing and consumes grounding credits. Use only Sandbox or another
+explicitly approved environment. Generated results stay under `Black-Box-Protocol/results/`,
+and the private provisioning manifest is excluded from Git.
+
+See [`Black-Box-Protocol/.env.example`](Black-Box-Protocol/.env.example) for every
+available target and [`Black-Box-Protocol/README.md`](Black-Box-Protocol/README.md) for
+provider installation and configuration.
+
+### Two-organization reference runner
+
+The separate reference runner implements the normative two-organization evaluation in
+[`PROTOCOL.md`](PROTOCOL.md):
+
 ```powershell
 Copy-Item config.example.json config.json
+$env:PYTHONPATH = "src"
 python -m aletheion_black_box plan --config config.json
 python -m aletheion_black_box run --config config.json --execute
 ```
 
-For a source checkout without installation, set `PYTHONPATH=src`:
-
-```powershell
-$env:PYTHONPATH = "src"
-python -m aletheion_black_box plan --config config.example.json
-```
-
-Or install the local CLI:
+It can also be installed as a local CLI:
 
 ```powershell
 python -m pip install .

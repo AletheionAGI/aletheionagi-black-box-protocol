@@ -1,0 +1,34 @@
+{
+  "freeze_version": "1.1.0",
+  "created_at": "2026-08-15T09:31:01.259114+00:00",
+  "combined_sha256": "835dbb5fc30bc729da558782fe7d9edfe8c8edfd3d84085eec06ffe0ae5aee0b",
+  "case_ids": [
+    "VN-001",
+    "VN-002",
+    "VN-003",
+    "VN-004",
+    "VN-005",
+    "VN-006",
+    "VN-007",
+    "VN-008",
+    "VN-009",
+    "VN-010"
+  ],
+  "files": {
+    "cases/abstention_fail_closed.jsonl": "57ea6059a8a3b97390b19d97ef1ddd4b6e6ed43eb4308e1980598e62c88b3677",
+    "cases/authorization_isolation.jsonl": "0c129ed40aff30a9c690b1d3e9cef1b0d5bd44b509149d507165a41e381231ea",
+    "cases/contradictory_evidence.jsonl": "513e801bdab7f6c6725efefb165269121fc675b12a13726ca7e4499bfb5b7da6",
+    "cases/cross_namespace_isolation.jsonl": "483fb058532d3ac7de8bb29ff2a0e1a3a91a9c5061c4a2df3054c6ce0ef74811",
+    "cases/insufficient_evidence.jsonl": "d61b943cdd84d4b2c0f05af61ccf31bdbf3c92cbbd8be3afd46169f070a4044b",
+    "cases/irrelevant_evidence.jsonl": "798d56cef1a93d63ef90d28d5e28013a6142347a7b17e1c2565e841e6e00037d",
+    "cases/poisoned_evidence.jsonl": "9eff0b68a5c3e9e1764c17d97a0339dd8e4dd4007c7b973018bdf2f6beed7056",
+    "cases/revoked_evidence.jsonl": "8fa9e3b4ec737afd4cc1fb4389d0d9f3e197a6b738216137eeb1bb4fbea338f8",
+    "cases/supported_answer.jsonl": "3e04e0db9ef14df69346460ea2591b99085067265b7feadb30b6446860c54e1b",
+    "cases/unsupported_claims.jsonl": "ff26e3963010a065fa51544eaff83253eb74932400dc1a738527b41a8feced2e",
+    "cases/case.schema.json": "c6cdfb357cbe58ee2547f17c40121a4aeed0330cc636f280ff5787bc0ef418e8",
+    "protocol/schema.py": "d5cdb5473cb861d0cfead7a545f7ff6962967c910d84a9c9c23471c749e044d6",
+    "protocol/normalization.py": "c3db97f1041baa38c95c18772b4ef0e3a25835738c05cd593fb5066f711b1bbe",
+    "protocol/scoring.py": "b174bb7d9c2b05bb7bf1bc824e98a297f345bbd36aca06a313816ee1ba98f510",
+    "HYPOTHESES.md": "56edb355b8ca6d140ed18c4ddc0efbfea934557a756024248bd52e51073af54a"
+  }
+}
