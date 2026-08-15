@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AletheionAGI/aletheionagi-black-box-protocol/schemas/result.schema.json",
+  "title": "AletheionAGI black-box protocol result",
+  "type": "object",
+  "required": ["protocol_version", "run_id", "started_at", "finished_at", "overall", "cases"],
+  "properties": {
+    "protocol_version": { "const": "1.0.0" },
+    "run_id": { "type": "string" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" },
+    "overall": { "enum": ["PASS", "FAIL", "INCONCLUSIVE"] },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["case_id", "name", "outcome", "reason"],
+        "properties": {
+          "case_id": { "pattern": "^BB-[0-9]{2}$" },
+          "name": { "type": "string" },
+          "outcome": { "enum": ["PASS", "FAIL", "INCONCLUSIVE"] },
+          "reason": { "type": "string" },
+          "details": { "type": "object" }
+        }
+      }
+    }
+  }
+}
+

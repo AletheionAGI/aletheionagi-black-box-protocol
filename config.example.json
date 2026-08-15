@@ -1,0 +1,19 @@
+{
+  "$schema": "./schemas/config.schema.json",
+  "protocol_version": "1.0.0",
+  "base_url": "https://api.aletheionagi.com",
+  "tested_release": "replace-with-release-or-deployment-id",
+  "namespace_id": "poc:replace-with-one-shared-uuid",
+  "attempts_per_organization": 10,
+  "timeout_seconds": 40,
+  "poll_interval_seconds": 2,
+  "poll_timeout_seconds": 90,
+  "top_k": 5,
+  "acknowledge_synthetic_data_only": false,
+  "acknowledge_credit_usage": false,
+  "manual_results": {
+    "BB-02": "INCONCLUSIVE",
+    "BB-10": "INCONCLUSIVE"
+  }
+}
+

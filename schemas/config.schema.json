@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AletheionAGI/aletheionagi-black-box-protocol/schemas/config.schema.json",
+  "title": "AletheionAGI black-box protocol configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "base_url",
+    "tested_release",
+    "namespace_id",
+    "attempts_per_organization",
+    "acknowledge_synthetic_data_only",
+    "acknowledge_credit_usage"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "protocol_version": { "const": "1.0.0" },
+    "base_url": { "type": "string", "pattern": "^https://[^/]+/?$" },
+    "tested_release": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "namespace_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,254}$"
+    },
+    "attempts_per_organization": { "type": "integer", "minimum": 10, "maximum": 100 },
+    "timeout_seconds": { "type": "number", "minimum": 5, "maximum": 120 },
+    "poll_interval_seconds": { "type": "number", "minimum": 0.25, "maximum": 30 },
+    "poll_timeout_seconds": { "type": "number", "minimum": 10, "maximum": 600 },
+    "top_k": { "type": "integer", "minimum": 1, "maximum": 100 },
+    "acknowledge_synthetic_data_only": { "const": true },
+    "acknowledge_credit_usage": { "const": true },
+    "manual_results": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "BB-02": { "enum": ["PASS", "FAIL", "INCONCLUSIVE"] },
+        "BB-10": { "enum": ["PASS", "FAIL", "INCONCLUSIVE"] }
+      }
+    }
+  }
+}
+
