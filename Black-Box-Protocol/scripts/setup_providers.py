@@ -12,11 +12,7 @@ from _bootstrap import ROOT
 
 PYTHON_VERSION = "3.12"
 VENV_SPECS = {
-    ".venv-lynx312": (
-        "transformers==4.43.2",
-        "accelerate==1.14.0",
-        "torch==2.13.0",
-    ),
+    ".venv-reporting312": ("matplotlib>=3.9,<4",),
     ".venv-nemo312": (
         "nemoguardrails==0.17.0",
         "langchain-nvidia-ai-endpoints",
@@ -55,9 +51,9 @@ def import_ok(python: Path, statement: str) -> bool:
 
 def readiness() -> dict[str, bool]:
     return {
-        "lynx": import_ok(
-            venv_python(".venv-lynx312"),
-            "import torch, accelerate, transformers; assert transformers.__version__ == '4.43.2'",
+        "reporting": import_ok(
+            venv_python(".venv-reporting312"),
+            "import matplotlib",
         ),
         "nemo": import_ok(
             venv_python(".venv-nemo312"),

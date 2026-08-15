@@ -9,15 +9,12 @@ from _bootstrap import ROOT
 from protocol.runner import FIRST_ROUND_TARGETS, run_targets
 from provision_aletheion import provision
 from setup_providers import install as install_providers
-from setup_providers import find_uv, readiness as provider_readiness
+from setup_providers import find_uv, readiness as provider_readiness, venv_python
 
 
 def configure_provider_commands() -> None:
     scripts_dir = "Scripts" if os.name == "nt" else "bin"
     executable = "python.exe" if os.name == "nt" else "python"
-    os.environ["LYNX_COMMAND"] = (
-        f".venv-lynx312/{scripts_dir}/{executable} providers/lynx_local.py --serve"
-    )
     os.environ["NEMO_GUARDRAILS_COMMAND"] = (
         f".venv-nemo312/{scripts_dir}/{executable} providers/nemo_local.py --serve"
     )
@@ -63,7 +60,7 @@ def main() -> int:
     parser.add_argument(
         "--skip-provider-setup",
         action="store_true",
-        help="do not install/check Lynx, NeMo and Guardrails AI environments",
+        help="do not install/check NeMo and Guardrails AI environments",
     )
     args = parser.parse_args()
     provider_state = provider_readiness()
@@ -77,7 +74,6 @@ def main() -> int:
         "namespace_prefix": bool(os.getenv("ALETHEION_NAMESPACE_PREFIX")),
         "nvidia_key": bool(os.getenv("NVIDIA_API_KEY")),
         "guardrails_ai_key": bool(os.getenv("GUARDRAILS_AI_API_KEY")),
-        "lynx_command": bool(os.getenv("LYNX_COMMAND")),
         "nemo_command": bool(os.getenv("NEMO_GUARDRAILS_COMMAND")),
         "guardrails_ai_command": bool(os.getenv("GUARDRAILS_AI_COMMAND")),
         "provider_environments": provider_state,
@@ -102,7 +98,13 @@ def main() -> int:
     os.environ["ALETHEION_PROVISIONING_MANIFEST"] = str(output)
     targets = list(FIRST_ROUND_TARGETS) + (["galileo"] if args.include_galileo else [])
     results = run_targets(ROOT, targets, runs=args.runs)
-    print(json.dumps({"manifest": str(output), "results": str(results)}, indent=2))
+    graph = results / "RESULTS.png"
+    subprocess.run(
+        [str(venv_python(".venv-reporting312")), str(ROOT / "scripts" / "plot_results_png.py"), str(results), "--output", str(graph)],
+        cwd=ROOT,
+        check=True,
+    )
+    print(json.dumps({"manifest": str(output), "results": str(results), "graph": str(graph)}, indent=2))
     return 0
 
 

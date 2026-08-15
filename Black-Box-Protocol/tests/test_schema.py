@@ -12,7 +12,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_frozen_corpus_has_all_differentiating_categories() -> None:
     cases = load_cases(ROOT)
-    assert len(cases) == 10
+    assert len(cases) == 500
+    category_counts = {}
+    for case in cases:
+        category_counts[case.category] = category_counts.get(case.category, 0) + 1
+    assert set(category_counts.values()) == {50}
     assert {case.category for case in cases} == {
         "supported_answer",
         "unsupported_claim",

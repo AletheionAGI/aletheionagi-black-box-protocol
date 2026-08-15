@@ -58,11 +58,11 @@ def main() -> int:
         "aletheionagi": "AletheionAGI",
         "guardrails_ai": "Guardrails AI",
         "nemo_guardrails": "NVIDIA NeMo Guardrails",
-        "patronus_lynx": "Patronus Lynx",
     }
     order = [name for name in display_names if name in targets]
     labels = [display_names[name] for name in order]
     y_positions = list(range(len(order)))
+    max_total = max(sum(int(targets[name][key]) for key, _, _ in OUTCOMES) for name in order)
 
     fig, ax = plt.subplots(figsize=(13, 6.8), dpi=180)
     fig.patch.set_facecolor("#f8fafc")
@@ -82,23 +82,27 @@ def main() -> int:
         )
         for bar, value in zip(bars, values):
             if value:
+                narrow = value < max(10, max_total * 0.025)
+                center = bar.get_x() + bar.get_width() / 2
                 ax.text(
-                    bar.get_x() + bar.get_width() / 2,
-                    bar.get_y() + bar.get_height() / 2,
+                    center,
+                    bar.get_y() - 0.06 if narrow else bar.get_y() + bar.get_height() / 2,
                     str(value),
-                    ha="center",
-                    va="center",
-                    color="white",
-                    fontsize=11,
+                    ha="right" if narrow and center > max_total * 0.98 else "center",
+                    va="bottom" if narrow else "center",
+                    color=color if narrow else "white",
+                    fontsize=9 if narrow else 11,
                     fontweight="bold",
+                    clip_on=False,
                 )
         left = [current + value for current, value in zip(left, values)]
 
     ax.set_yticks(y_positions, labels, fontsize=12, fontweight="semibold")
     ax.invert_yaxis()
-    ax.set_xlim(0, 10)
-    ax.set_xticks(range(0, 11))
-    ax.set_xlabel("Cases (10 per target)", fontsize=11)
+    tick_step = max(1, max_total // 10)
+    ax.set_xlim(0, max_total)
+    ax.set_xticks(range(0, max_total + 1, tick_step))
+    ax.set_xlabel(f"Cases ({max_total} per target)", fontsize=11)
     ax.grid(axis="x", color="#cbd5e1", linewidth=0.8, alpha=0.65)
     ax.set_axisbelow(True)
     for spine in ax.spines.values():
@@ -130,8 +134,7 @@ def main() -> int:
     fig.text(
         0.08,
         0.025,
-        "AletheionAGI was revalidated after a transient HTTP 503: 9 PASS · 0 FAIL · 1 SKIPPED · 0 ERROR.\n"
-        + "Sources — "
+        "500 frozen synthetic cases: 50 in each of 10 security categories.\nSources — "
         + " | ".join(sources),
         ha="left",
         va="bottom",

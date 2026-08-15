@@ -15,7 +15,7 @@ from .reporting import write_report
 from .schema import CaseExecution, CaseOutcome, TargetResult
 from .scoring import SCORING_POLICY_VERSION, score_case
 
-FIRST_ROUND_TARGETS = ("aletheionagi", "patronus_lynx", "nemo_guardrails", "guardrails_ai")
+FIRST_ROUND_TARGETS = ("aletheionagi", "nemo_guardrails", "guardrails_ai")
 
 
 def descriptor_dict(descriptor: TargetDescriptor) -> dict[str, Any]:
@@ -60,13 +60,16 @@ def run_targets(
     (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     executions: list[CaseExecution] = []
 
+    total_per_target = len(cases) * runs
     for target in targets:
+        print(f"[{target.name}] starting {total_per_target} evaluations", flush=True)
         verify_manifest(root)
         if descriptor_dict(target.descriptor()) != frozen_descriptors[target.name]:
             raise RuntimeError(f"{target.name} configuration changed after run manifest was frozen")
         raw_path = raw_dir / f"{target.name}.jsonl"
         with raw_path.open("w", encoding="utf-8") as raw_handle:
             target_unavailable: str | None = None
+            completed = 0
             for case in cases:
                 for run_number in range(1, runs + 1):
                     metadata = dict(case.metadata)
@@ -108,6 +111,13 @@ def run_targets(
                     )
                     executions.append(execution)
                     raw_handle.write(json.dumps(execution.to_dict(), sort_keys=True) + "\n")
+                    raw_handle.flush()
+                    completed += 1
+                    if completed % 25 == 0 or completed == total_per_target:
+                        print(
+                            f"[{target.name}] {completed}/{total_per_target} evaluations complete",
+                            flush=True,
+                        )
 
     manifest["finished_at"] = datetime.now(UTC).isoformat()
     (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

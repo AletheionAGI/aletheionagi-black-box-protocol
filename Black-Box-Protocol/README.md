@@ -10,12 +10,11 @@ private endpoints, use real tenant data or exceed provider terms and rate limits
 
 ## First reproducible round
 
-The default comparison contains four targets:
+The default comparison contains three targets:
 
 1. AletheionAGI public Grounding API;
-2. Patronus Lynx as a local unsupported/contradiction detector;
-3. NVIDIA NeMo Guardrails fact-checking rail;
-4. Guardrails AI provenance/grounded-hallucination validator.
+2. NVIDIA NeMo Guardrails fact-checking rail;
+3. Guardrails AI provenance/grounded-hallucination validator.
 
 Galileo Protect is implemented as an experimental phase-2 adapter and is excluded from
 the default `run_all.py` cohort. A newly pre-registered cohort can opt in with
@@ -58,7 +57,8 @@ manifest before the first case. Configuration drift during the run aborts execut
 
 ## Differentiating cases
 
-The frozen corpus measures systems, not only hallucination classifiers:
+The frozen corpus contains 500 synthetic cases—50 in each of 10 security categories—and
+measures systems, not only hallucination classifiers:
 
 - sufficient versus insufficient evidence;
 - a supported claim and an unsupported claim in the same answer;
@@ -70,8 +70,8 @@ The frozen corpus measures systems, not only hallucination classifiers:
 - cases where abstention or fail-closed enforcement is the only acceptable behavior.
 
 The hypotheses are recorded before results. A scientifically credible outcome may show
-different strengths—for example Lynx on detection, NeMo on fact-checking and
-AletheionAGI on isolation/fail-closed behavior. That is a hypothesis, not a result.
+different strengths—for example NeMo on fact-checking and AletheionAGI on
+isolation/fail-closed behavior. That is a hypothesis, not a result.
 
 ## Quick start
 
@@ -92,7 +92,7 @@ On PowerShell:
 Copy-Item .env.example .env
 ```
 
-### 2. Install Lynx, NeMo and Guardrails AI
+### 2. Install NeMo and Guardrails AI
 
 The setup scripts install `uv`, an isolated Python 3.12 runtime and three independent
 virtual environments. They are idempotent and can be executed again safely.
@@ -111,13 +111,12 @@ Windows PowerShell:
 
 The provider environments are:
 
-- `.venv-lynx312`: PyTorch, Accelerate and Transformers 4.43.2;
+- `.venv-reporting312`: Matplotlib for the final PNG chart;
 - `.venv-nemo312`: NeMo Guardrails 0.17.0 and NVIDIA AI Endpoints;
 - `.venv-guardrails312`: Guardrails AI 0.10.2 and the GroundedAI hallucination validator.
 
-The first inference downloads approximately 15 GB for Patronus Lynx and 7.2 GB for
-Phi-3.5, plus a small GroundedAI adapter. The tested CPU-only Lynx configuration loads
-the model in FP32 and needs roughly 32 GB of available RAM. A GPU is not required.
+The first Guardrails AI inference downloads approximately 7.2 GB for Phi-3.5, plus a
+small GroundedAI adapter. A GPU is not required.
 
 ### 3. Review and run
 
@@ -201,28 +200,6 @@ an `isolation_control` description to the isolation cases. The adapter validates
 frozen digest and the exact authorized/unauthorized evidence inventory for every case;
 it refuses nominal isolation tests lacking that attestation. See
 [`ROADMAP.md`](ROADMAP.md) for the completion gates.
-
-### Patronus Lynx
-
-The old GitHub repository URL currently returns 404, but Patronus still publishes the
-official model in its Hugging Face namespace. The default is
-`PatronusAI/Llama-3-Patronus-Lynx-8B-Instruct-v1.1`; verify its CC-BY-NC-4.0 terms for
-your use. The environment is installed by the setup step; model weights are downloaded
-from Hugging Face on the first inference and then reused from the local cache.
-
-The tested CPU setup uses Python 3.12 and Transformers 4.43.2, matching the runtime
-recorded by the model. The configured command is persistent so the 8B model is loaded
-once per suite:
-
-```powershell
-uv venv --python 3.12 .venv-lynx312
-uv pip install --python .venv-lynx312/bin/python "transformers==4.43.2" accelerate torch
-$env:LYNX_COMMAND = ".venv-lynx312/bin/python providers/lynx_local.py --serve"
-python scripts/run_target.py --target patronus_lynx
-```
-
-The wrapper uses Patronus's published QUESTION/DOCUMENT/ANSWER prompt and preserves
-Lynx as a detector; it does not pretend Lynx provides authorization or enforcement.
 
 ### NeMo Guardrails
 

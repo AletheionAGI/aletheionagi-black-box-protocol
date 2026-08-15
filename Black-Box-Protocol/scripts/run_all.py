@@ -7,7 +7,7 @@ from protocol.runner import FIRST_ROUND_TARGETS, run_targets
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run the four first-round targets")
+    parser = argparse.ArgumentParser(description="Run the three comparison targets")
     parser.add_argument("--runs", type=int, default=1)
     parser.add_argument("--categories", help="comma-separated category filter")
     parser.add_argument(
