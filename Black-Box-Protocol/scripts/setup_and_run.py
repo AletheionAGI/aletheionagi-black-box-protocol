@@ -58,6 +58,10 @@ def main() -> int:
     parser.add_argument("--include-galileo", action="store_true")
     parser.add_argument("--reuse-provisioning", action="store_true")
     parser.add_argument(
+        "--targets",
+        help="comma-separated targets (default: aletheionagi,nemo_guardrails,guardrails_ai)",
+    )
+    parser.add_argument(
         "--skip-provider-setup",
         action="store_true",
         help="do not install/check NeMo and Guardrails AI environments",
@@ -67,6 +71,10 @@ def main() -> int:
     if args.execute and not args.skip_provider_setup and not all(provider_state.values()):
         provider_state = ensure_provider_environments()
     configure_provider_commands()
+    targets = args.targets.split(",") if args.targets else list(FIRST_ROUND_TARGETS)
+    if args.include_galileo:
+        targets.append("galileo")
+    targets = list(dict.fromkeys(targets))
     plan = provision(ROOT / "unused-dry-run.json", False)
     output = ROOT / f"private-provisioning-{plan['frozen_sha256'][:12]}.json"
     ready = {
@@ -86,17 +94,17 @@ def main() -> int:
             )
         )
         return 0
-    if args.reuse_provisioning:
-        if not output.is_file():
-            raise FileNotFoundError(f"no provisioning manifest to reuse: {output}")
-        manifest = json.loads(output.read_text(encoding="utf-8"))
-        if manifest.get("frozen_sha256") != plan["frozen_sha256"]:
-            raise RuntimeError("provisioning manifest belongs to another frozen cohort")
-    else:
-        manifest = provision(output, True)
-    os.environ["ALETHEION_CORPUS_FROZEN_SHA256"] = manifest["frozen_sha256"]
-    os.environ["ALETHEION_PROVISIONING_MANIFEST"] = str(output)
-    targets = list(FIRST_ROUND_TARGETS) + (["galileo"] if args.include_galileo else [])
+    if "aletheionagi" in targets:
+        if args.reuse_provisioning:
+            if not output.is_file():
+                raise FileNotFoundError(f"no provisioning manifest to reuse: {output}")
+            manifest = json.loads(output.read_text(encoding="utf-8"))
+            if manifest.get("frozen_sha256") != plan["frozen_sha256"]:
+                raise RuntimeError("provisioning manifest belongs to another frozen cohort")
+        else:
+            manifest = provision(output, True)
+        os.environ["ALETHEION_CORPUS_FROZEN_SHA256"] = manifest["frozen_sha256"]
+        os.environ["ALETHEION_PROVISIONING_MANIFEST"] = str(output)
     results = run_targets(ROOT, targets, runs=args.runs)
     graph = results / "RESULTS.png"
     subprocess.run(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import argparse, json, os, time, urllib.error, urllib.request, uuid
+import argparse, json, os, sys, time, urllib.error, urllib.request, uuid
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
@@ -10,6 +10,8 @@ from _bootstrap import ROOT
 from adapters.aletheionagi import _raw_evidence_digest
 from protocol.freeze import load_cases, verify_manifest
 
+NETWORK_ATTEMPTS = 6
+
 
 def request(method: str, path: str, body: dict[str, Any] | None = None, idem: str | None = None) -> tuple[int, Any]:
     payload = json.dumps(body).encode() if body is not None else None
@@ -17,11 +19,29 @@ def request(method: str, path: str, body: dict[str, Any] | None = None, idem: st
     if payload is not None: headers["Content-Type"] = "application/json"
     if idem: headers["Idempotency-Key"] = idem
     req = urllib.request.Request(os.getenv("ALETHEION_BASE_URL", "https://api.aletheionagi.com").rstrip("/") + path, data=payload, headers=headers, method=method)
-    try:
-        with urllib.request.urlopen(req, timeout=40) as response:
-            raw = response.read(); return response.status, json.loads(raw) if raw else None
-    except urllib.error.HTTPError as error:
-        raw = error.read(); return error.code, json.loads(raw) if raw else None
+    for attempt in range(NETWORK_ATTEMPTS):
+        try:
+            with urllib.request.urlopen(req, timeout=40) as response:
+                raw = response.read(); return response.status, json.loads(raw) if raw else None
+        except urllib.error.HTTPError as error:
+            raw = error.read()
+            response = json.loads(raw) if raw else None
+            if error.code != 429 and error.code < 500:
+                return error.code, response
+            last_error: BaseException = error
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
+            last_error = error
+        if attempt + 1 == NETWORK_ATTEMPTS:
+            raise last_error
+        delay = min(2**attempt, 16)
+        print(
+            f"[provision] transient {method} {path} failure; retry "
+            f"{attempt + 2}/{NETWORK_ATTEMPTS} in {delay}s",
+            file=sys.stderr,
+            flush=True,
+        )
+        time.sleep(delay)
+    raise RuntimeError("unreachable")
 
 
 def namespace(prefix: str, frozen: str, case_id: str, kind: str = "primary") -> str:
@@ -56,7 +76,10 @@ def provision(output: Path, execute: bool = False) -> dict[str, Any]:
     if not prefix.endswith(":"): raise ValueError("ALETHEION_NAMESPACE_PREFIX must end with ':'")
     if execute and not os.getenv("ALETHEION_API_KEY"): raise ValueError("ALETHEION_API_KEY is required")
     entries: dict[str, Any] = {}
-    for case in load_cases(ROOT):
+    cases = load_cases(ROOT)
+    for case_number, case in enumerate(cases, start=1):
+        if execute:
+            print(f"[provision] case {case_number}/{len(cases)}: {case.id}", flush=True)
         primary = namespace(prefix, digest, case.id); control = namespace(prefix, digest, case.id, "control")
         entries[case.id] = {
             "namespace_id": primary,

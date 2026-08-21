@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import sys
@@ -17,8 +18,38 @@ def build_evaluator():
     from guardrails import Guard
     from guardrails.errors import ValidationError
     from guardrails.hub import GroundedAIHallucination
+    from transformers import pipeline
 
-    validator = GroundedAIHallucination(quant=False, device="cpu")
+    class QuietGroundedAIHallucination(GroundedAIHallucination):
+        def run_model(self, query: str, response: str, reference: str = "") -> str:
+            prompt = self.format_input(query, response, reference)
+            messages = [{"role": "user", "content": prompt}]
+            rendered_chat = self._tokenizer.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=False,
+            )
+            prompt_tokens = self._tokenizer(rendered_chat, add_special_tokens=False)["input_ids"]
+            generation_config = copy.deepcopy(self._merged_model.generation_config)
+            generation_config.max_new_tokens = None
+            generation_config.max_length = len(prompt_tokens) + 2
+            generation_config.temperature = 0.01
+            generation_config.do_sample = True
+            text_pipeline = pipeline(
+                "text-generation",
+                model=self._merged_model,
+                device=self._device,
+                tokenizer=self._tokenizer,
+            )
+            output = text_pipeline(
+                messages,
+                generation_config=generation_config,
+                return_full_text=False,
+                clean_up_tokenization_spaces=False,
+            )
+            return output[0]["generated_text"].strip().lower()
+
+    validator = QuietGroundedAIHallucination(quant=False, device="cpu")
     guard = Guard().use(validator)
 
     def evaluate(request):
